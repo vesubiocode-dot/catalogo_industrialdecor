@@ -162,6 +162,13 @@
                     <textarea id="itemDesc" rows="3" placeholder="Medidas, materiales, acabados, etc." maxlength="2000"></textarea>
                 </div>
 
+                <div class="field field-inline">
+                    <label for="itemQty">Cantidad disponible
+                        <span class="hint-small">(0 o vacío = "Realizar pedido")</span>
+                    </label>
+                    <input type="number" id="itemQty" min="0" step="1" placeholder="0" inputmode="numeric">
+                </div>
+
                 <div class="field">
                     <label for="itemImages">Imágenes *</label>
                     <div class="dropzone" id="dropzone" tabindex="0">
