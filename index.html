@@ -146,9 +146,9 @@
     <!-- ===== MODAL FORMULARIO CARGA ===== -->
     <div class="modal" id="formModal" aria-hidden="true">
         <div class="modal-backdrop" data-close></div>
-        <div class="modal-box" role="dialog" aria-modal="true" aria-label="Cargar nuevo objeto">
+        <div class="modal-box" role="dialog" aria-modal="true" aria-label="Cargar/Editar objeto">
             <button class="modal-close" data-close aria-label="Cerrar">&times;</button>
-            <h3 class="modal-title">Cargar nuevo objeto</h3>
+            <h3 class="modal-title" id="formTitle">Cargar nuevo objeto</h3>
             <p class="modal-sub">Los campos con * son obligatorios.</p>
 
             <form id="itemForm" class="item-form">
@@ -170,12 +170,13 @@
                         <p class="dropzone-text">Hacé clic o arrastrá imágenes aquí</p>
                         <p class="dropzone-hint">Podés subir varias. JPG, PNG o WEBP.</p>
                     </div>
+                    <p class="thumbs-hint" id="thumbsHint" hidden>Imágenes actuales (clic en × para quitar) y nuevas por agregar:</p>
                     <div class="thumbs-preview" id="thumbsPreview"></div>
                 </div>
 
                 <div class="form-actions">
                     <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Publicar</button>
+                    <button type="submit" class="btn btn-primary" id="formSubmitBtn">Publicar</button>
                 </div>
             </form>
         </div>
