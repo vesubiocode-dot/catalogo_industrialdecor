@@ -326,18 +326,23 @@ input, textarea { font-family: inherit; }
     display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
     -webkit-box-orient: vertical; overflow: hidden;
 }
-.product-delete {
-    position: absolute; top: 12px; left: 12px;
+/* Botones admin (Editar y Eliminar) en cada tarjeta.
+   Solo visibles en modo admin (body.admin-active). */
+.product-edit, .product-delete {
+    position: absolute; top: 12px;
     width: 32px; height: 32px;
     background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 50%;
     display: none; align-items: center; justify-content: center;
-    color: #ff6b6b; font-size: 16px;
     transition: all 0.3s var(--ease);
     z-index: 3;
 }
-.product-delete:hover { background: #c0392b; color: #fff; }
+.product-edit   { right: 12px; color: var(--wood); }
+.product-delete { left: 12px;  color: #ff6b6b; }
+.product-edit:hover   { background: var(--wood); color: #1a1a1a; }
+.product-delete:hover { background: #c0392b;     color: #fff; }
+.admin-active .product-edit,
 .admin-active .product-delete { display: flex; }
 
 /* ---------- Estado vacío ---------- */
@@ -507,6 +512,10 @@ input, textarea { font-family: inherit; }
 }
 .dropzone-text { font-size: 0.95rem; font-weight: 500; margin-top: 10px; color: var(--text-mute); }
 .dropzone-hint { font-size: 0.8rem; margin-top: 4px; }
+.thumbs-hint {
+    font-size: 0.78rem; color: var(--text-dim);
+    margin-top: 10px; letter-spacing: 0.03em;
+}
 .thumbs-preview {
     display: flex; flex-wrap: wrap; gap: 10px;
     margin-top: 14px;
@@ -514,9 +523,10 @@ input, textarea { font-family: inherit; }
 .thumb {
     position: relative; width: 72px; height: 72px;
     border-radius: var(--radius); overflow: hidden;
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     animation: cardIn 0.4s var(--ease-out);
 }
+.thumb.thumb-existing { border-color: var(--wood); }   /* marca las ya guardadas */
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .thumb-remove {
     position: absolute; top: 2px; right: 2px;
