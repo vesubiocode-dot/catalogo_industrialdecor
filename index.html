@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industrial Decors — Catálogo</title>
+    <meta name="description" content="Catálogo de muebles industriales a medida. Diseño, calidad y craftsmanship.">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- ===== HEADER / NAV ===== -->
+    <header class="site-header" id="top">
+        <div class="header-inner">
+            <a href="#top" class="brand">
+                <img src="assets/logo.png" alt="Industrial Decors" class="brand-logo">
+            </a>
+            <nav class="main-nav">
+                <a href="#catalogo" class="nav-link">Catálogo</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
+                <button id="adminToggleBtn" class="nav-link nav-link--btn" aria-label="Acceso administrador">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1l3 6 6 1-4.5 4.5L18 19l-6-3-6 3 1.5-6.5L3 8l6-1z"/></svg>
+                    <span id="adminToggleText">Admin</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <p class="hero-eyebrow fade-up">Muebles industriales a medida</p>
+            <h1 class="hero-title fade-up delay-1">DISEÑO <span class="accent">QUE</span> PERDURA</h1>
+            <p class="hero-subtitle fade-up delay-2">Cada pieza es única. Construida con madera y acero, pensada para acompañarte toda la vida.</p>
+            <a href="#catalogo" class="btn btn-primary fade-up delay-3">Ver catálogo</a>
+        </div>
+        <div class="scroll-hint">
+            <span></span>
+        </div>
+    </section>
+
+    <!-- ===== CATALOGO ===== -->
+    <section class="section" id="catalogo">
+        <div class="section-inner">
+            <div class="section-head">
+                <p class="section-eyebrow">Nuestro trabajo</p>
+                <h2 class="section-title">CATÁLOGO</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <!-- Controles admin (solo visible cuando está logueado) -->
+            <div id="adminControls" class="admin-controls" hidden>
+                <button id="openFormBtn" class="btn btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Cargar nuevo objeto
+                </button>
+                <button id="logoutBtn" class="btn btn-ghost">Cerrar sesión</button>
+            </div>
+
+            <!-- Grid de productos -->
+            <div id="catalogGrid" class="catalog-grid">
+                <!-- productos se inyectan acá por JS -->
+            </div>
+
+            <!-- Estado vacío -->
+            <div id="emptyState" class="empty-state" hidden>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+                <p class="empty-title">Aún no hay piezas cargadas</p>
+                <p class="empty-sub">Pronto subiremos nuevos trabajos. Vuelve a visitarnos.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CONTACTO ===== -->
+    <section class="section section--contact" id="contacto">
+        <div class="section-inner">
+            <div class="section-head">
+                <p class="section-eyebrow">Hablemos</p>
+                <h2 class="section-title">CONTACTO</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="contact-grid">
+                <a href="https://wa.me/5493755820175?text=Hola%20Industrial%20Decors,%20me%20interesa%20una%20pieza%20del%20catálogo" 
+                   target="_blank" rel="noopener" class="contact-card contact-card--wa">
+                    <div class="contact-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    </div>
+                    <div class="contact-info">
+                        <span class="contact-label">WhatsApp</span>
+                        <span class="contact-value">+54 3755 820175</span>
+                    </div>
+                    <span class="contact-cta">Escribir →</span>
+                </a>
+
+                <a href="https://instagram.com/idustrialdecors_muebleria" 
+                   target="_blank" rel="noopener" class="contact-card contact-card--ig">
+                    <div class="contact-icon">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </div>
+                    <div class="contact-info">
+                        <span class="contact-label">Instagram</span>
+                        <span class="contact-value">@idustrialdecors_muebleria</span>
+                    </div>
+                    <span class="contact-cta">Seguir →</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <img src="assets/logo.png" alt="Industrial Decors" class="footer-logo">
+            <p class="footer-text">© <span id="year"></span> Industrial Decors · Muebles industriales a medida</p>
+        </div>
+    </footer>
+
+    <!-- ===== MODAL LOGIN ===== -->
+    <div class="modal" id="loginModal" aria-hidden="true">
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-box modal-box--sm" role="dialog" aria-modal="true" aria-label="Acceso administrador">
+            <button class="modal-close" data-close aria-label="Cerrar">&times;</button>
+            <h3 class="modal-title">Acceso administrador</h3>
+            <p class="modal-sub">Ingresá con la cuenta de administrador.</p>
+            <form id="loginForm" class="login-form">
+                <div class="field">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" id="adminEmail" placeholder="admin@industrialdecors.com" autocomplete="email" required>
+                </div>
+                <div class="field">
+                    <label for="adminPass">Clave</label>
+                    <input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password" required>
+                </div>
+                <div class="login-error" id="loginError" hidden>Datos incorrectos. Intentá de nuevo.</div>
+                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== MODAL FORMULARIO CARGA ===== -->
+    <div class="modal" id="formModal" aria-hidden="true">
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-box" role="dialog" aria-modal="true" aria-label="Cargar nuevo objeto">
+            <button class="modal-close" data-close aria-label="Cerrar">&times;</button>
+            <h3 class="modal-title">Cargar nuevo objeto</h3>
+            <p class="modal-sub">Los campos con * son obligatorios.</p>
+
+            <form id="itemForm" class="item-form">
+                <div class="field">
+                    <label for="itemName">Nombre del objeto *</label>
+                    <input type="text" id="itemName" placeholder="Ej: Escritorio industrial 120x60" required maxlength="80">
+                </div>
+
+                <div class="field">
+                    <label for="itemDesc">Descripción</label>
+                    <textarea id="itemDesc" rows="3" placeholder="Medidas, materiales, acabados, etc." maxlength="2000"></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="itemImages">Imágenes *</label>
+                    <div class="dropzone" id="dropzone" tabindex="0">
+                        <input type="file" id="itemImages" accept="image/*" multiple hidden>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <p class="dropzone-text">Hacé clic o arrastrá imágenes aquí</p>
+                        <p class="dropzone-hint">Podés subir varias. JPG, PNG o WEBP.</p>
+                    </div>
+                    <div class="thumbs-preview" id="thumbsPreview"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Publicar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== LIGHTBOX (visor de imágenes) ===== -->
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+        <button class="lightbox-close" id="lbClose" aria-label="Cerrar">&times;</button>
+        <button class="lightbox-nav lightbox-prev" id="lbPrev" aria-label="Anterior">‹</button>
+        <button class="lightbox-nav lightbox-next" id="lbNext" aria-label="Siguiente">›</button>
+        <div class="lightbox-stage">
+            <img id="lbImage" src="" alt="">
+        </div>
+        <div class="lightbox-info" id="lbInfo">
+            <h3 class="lightbox-name" id="lbName"></h3>
+            <p class="lightbox-desc" id="lbDesc"></p>
+        </div>
+        <div class="lightbox-counter" id="lbCounter"></div>
+        <div class="lightbox-thumbs" id="lbThumbs"></div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="js/app.js" type="module"></script>
+</body>
+</html>
