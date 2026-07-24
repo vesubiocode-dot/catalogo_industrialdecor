@@ -49,6 +49,7 @@ import {
         thumbsHint:  $('#thumbsHint'),
         itemName:    $('#itemName'),
         itemDesc:    $('#itemDesc'),
+        itemQty:     $('#itemQty'),
         itemImages:  $('#itemImages'),
         dropzone:    $('#dropzone'),
         thumbs:      $('#thumbsPreview'),
@@ -113,6 +114,7 @@ import {
                         id: d.id,
                         name: data.name || '',
                         desc: data.desc || '',
+                        quantity: (typeof data.quantity === 'number' ? data.quantity : (parseInt(data.quantity, 10) || 0)),
                         images: Array.isArray(data.images) ? data.images : [],
                         imagePaths: Array.isArray(data.imagePaths) ? data.imagePaths : [],
                         createdAt: data.createdAt instanceof Timestamp
@@ -158,6 +160,7 @@ import {
             <div class="product-body">
                 <h3 class="product-name">${escapeHtml(item.name)}</h3>
                 ${item.desc ? `<p class="product-desc">${escapeHtml(item.desc)}</p>` : ''}
+                ${renderAvailabilityBtn(item)}
             </div>
             <button class="product-edit" title="Editar" aria-label="Editar objeto">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
@@ -168,6 +171,7 @@ import {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.product-delete')) return;
             if (e.target.closest('.product-edit')) return;
+            if (e.target.closest('.availability-btn')) return;
             if (item.images.length) openLightbox(item, 0);
         });
 
@@ -182,6 +186,30 @@ import {
         });
 
         return card;
+    }
+
+    /* Botón de disponibilidad / pedido según la cantidad cargada.
+       0 o sin cantidad -> "Realizar pedido"
+       >0               -> "Disponible: N unidades"
+       Ambos linkean a WhatsApp con mensaje "Hola, me interesa la pieza: [NOMBRE]"
+    */
+    const WA_NUMBER = '5493755820175';   // +54 3755 820175
+
+    function renderAvailabilityBtn(item) {
+        const qty = (typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity, 10)) || 0;
+        const message = `Hola, me interesa la pieza: ${item.name}`;
+        const href = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`;
+        let label, cls, icon;
+        if (qty > 0) {
+            label = `Disponible: ${qty} ${qty === 1 ? 'unidad' : 'unidades'}`;
+            cls = 'availability-btn availability-btn--stock';
+            icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
+        } else {
+            label = 'Realizar pedido';
+            cls = 'availability-btn availability-btn--order';
+            icon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
+        }
+        return `<a href="${href}" target="_blank" rel="noopener" class="${cls}" onClick="event.stopPropagation()">${icon}<span>${label}</span></a>`;
     }
 
     /* ===============================================================
@@ -374,6 +402,7 @@ import {
         // precargar campos
         els.itemName.value = item.name || '';
         els.itemDesc.value = item.desc || '';
+        els.itemQty.value = (item.quantity > 0 ? item.quantity : '');
         // precargar imágenes existentes como "a mantener"
         existingImages = (item.images || []).map((url, i) => ({
             url,
@@ -459,6 +488,11 @@ import {
         const totalImages = existingImages.length + pendingImages.length;
         if (!totalImages) { showToast('Tiene que haber al menos una imagen', 'error'); return; }
 
+        // cantidad: entero (default 0 si vacío/no numérico)
+        const rawQty = parseInt(els.itemQty.value, 10);
+        const quantity = (Number.isFinite(rawQty) && rawQty > 0) ? rawQty : 0;
+        const desc = els.itemDesc.value.trim();
+
         const submitBtn = els.formSubmitBtn;
         const origText = submitBtn.textContent;
         submitBtn.disabled = true;
@@ -489,7 +523,8 @@ import {
                 submitBtn.textContent = 'Guardando cambios…';
                 await updateDoc(doc(db, COL, formState.id), {
                     name,
-                    desc: els.itemDesc.value.trim(),
+                    desc,
+                    quantity,
                     images: allUrls,
                     imagePaths: allPaths,
                 });
@@ -509,7 +544,8 @@ import {
                 // ---------- CREACIÓN ----------
                 await addDoc(collection(db, COL), {
                     name,
-                    desc: els.itemDesc.value.trim(),
+                    desc,
+                    quantity,
                     images: allUrls,
                     imagePaths: allPaths,
                     createdAt: serverTimestamp(),
