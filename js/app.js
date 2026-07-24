@@ -11,7 +11,7 @@ import { db, auth, githubConfig } from './firebase-config.js';
 
 import {
     collection, query, orderBy, onSnapshot,
-    addDoc, deleteDoc, doc, serverTimestamp, Timestamp
+    addDoc, deleteDoc, doc, serverTimestamp, Timestamp, updateDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 import {
@@ -44,6 +44,9 @@ import {
 
         formModal:   $('#formModal'),
         itemForm:    $('#itemForm'),
+        formTitle:   $('#formTitle'),
+        formSubmitBtn: $('#formSubmitBtn'),
+        thumbsHint:  $('#thumbsHint'),
         itemName:    $('#itemName'),
         itemDesc:    $('#itemDesc'),
         itemImages:  $('#itemImages'),
@@ -71,7 +74,10 @@ import {
     let items = [];
     let isAdmin = false;
     let currentUser = null;
-    let pendingImages = [];        // {file, name, previewUrl} pendientes de subir
+    let pendingImages = [];        // nuevas a subir: {file, name, previewUrl}
+    let existingImages = [];        // mantenidas al editar: {url, path}
+    let removedImagePaths = [];     // paths a borrar de GitHub (al editar)
+    let formState = { mode: 'create', id: null };
     let lbState = { urls: [], idx: 0 };
 
     /* ===============================================================
@@ -153,12 +159,21 @@ import {
                 <h3 class="product-name">${escapeHtml(item.name)}</h3>
                 ${item.desc ? `<p class="product-desc">${escapeHtml(item.desc)}</p>` : ''}
             </div>
+            <button class="product-edit" title="Editar" aria-label="Editar objeto">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
             <button class="product-delete" title="Eliminar" aria-label="Eliminar objeto">×</button>
         `;
 
         card.addEventListener('click', (e) => {
             if (e.target.closest('.product-delete')) return;
+            if (e.target.closest('.product-edit')) return;
             if (item.images.length) openLightbox(item, 0);
+        });
+
+        card.querySelector('.product-edit').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openEditForm(item);
         });
 
         card.querySelector('.product-delete').addEventListener('click', (e) => {
@@ -337,11 +352,36 @@ import {
     }
 
     /* ===============================================================
-       FORMULARIO DE CARGA
+       FORMULARIO DE CARGA / EDICIÓN
+       El mismo modal sirve para ambos modos:
+         - formState.mode = 'create'  → alta nueva
+         - formState.mode = 'edit'   → editar item existente (formState.id)
     =============================================================== */
     function openItemForm() {
         if (!requireAdmin()) return;
         resetForm();
+        formState = { mode: 'create', id: null };
+        els.formTitle.textContent = 'Cargar nuevo objeto';
+        els.formSubmitBtn.textContent = 'Publicar';
+        openModal(els.formModal);
+        setTimeout(() => els.itemName.focus(), 350);
+    }
+
+    function openEditForm(item) {
+        if (!requireAdmin()) return;
+        resetForm();
+        formState = { mode: 'edit', id: item.id };
+        // precargar campos
+        els.itemName.value = item.name || '';
+        els.itemDesc.value = item.desc || '';
+        // precargar imágenes existentes como "a mantener"
+        existingImages = (item.images || []).map((url, i) => ({
+            url,
+            path: (item.imagePaths || [])[i] || '',
+        }));
+        els.formTitle.textContent = 'Editar objeto';
+        els.formSubmitBtn.textContent = 'Guardar cambios';
+        renderThumbs();
         openModal(els.formModal);
         setTimeout(() => els.itemName.focus(), 350);
     }
@@ -349,7 +389,10 @@ import {
     function resetForm() {
         els.itemForm.reset();
         pendingImages = [];
+        existingImages = [];
+        removedImagePaths = [];
         els.thumbs.innerHTML = '';
+        els.thumbsHint.hidden = true;
     }
 
     function handleImagesInput(files) {
@@ -372,12 +415,31 @@ import {
 
     function renderThumbs() {
         els.thumbs.innerHTML = '';
+        const showHint = existingImages.length > 0 || pendingImages.length > 0;
+        els.thumbsHint.hidden = !showHint;
+
+        // primero: imágenes existentes (mantener)
+        existingImages.forEach((img, i) => {
+            const t = document.createElement('div');
+            t.className = 'thumb thumb-existing';
+            t.innerHTML = `
+                <img src="${img.url}" alt="">
+                <button type="button" class="thumb-remove" title="Quitar" data-kind="existing" data-i="${i}">×</button>
+            `;
+            t.querySelector('.thumb-remove').addEventListener('click', () => {
+                if (img.path) removedImagePaths.push(img.path);
+                existingImages.splice(i, 1);
+                renderThumbs();
+            });
+            els.thumbs.appendChild(t);
+        });
+        // después: imágenes nuevas a subir
         pendingImages.forEach((img, i) => {
             const t = document.createElement('div');
             t.className = 'thumb';
             t.innerHTML = `
                 <img src="${img.previewUrl}" alt="">
-                <button type="button" class="thumb-remove" title="Quitar" data-i="${i}">×</button>
+                <button type="button" class="thumb-remove" title="Quitar" data-kind="new" data-i="${i}">×</button>
             `;
             t.querySelector('.thumb-remove').addEventListener('click', () => {
                 pendingImages.splice(i, 1);
@@ -393,41 +455,72 @@ import {
 
         const name = els.itemName.value.trim();
         if (!name) { showToast('Falta el nombre del objeto', 'error'); return; }
-        if (!pendingImages.length) { showToast('Subí al menos una imagen', 'error'); return; }
 
-        const submitBtn = els.itemForm.querySelector('button[type="submit"]');
+        const totalImages = existingImages.length + pendingImages.length;
+        if (!totalImages) { showToast('Tiene que haber al menos una imagen', 'error'); return; }
+
+        const submitBtn = els.formSubmitBtn;
         const origText = submitBtn.textContent;
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Subiendo…';
+        submitBtn.textContent = 'Guardando…';
 
         try {
-            // 1) Subir cada imagen a GitHub → obtener URLs públicas
-            const uploaded = [];
+            // Subir imágenes nuevas a GitHub
+            const uploadedNew = [];
             const stamp = Date.now();
             for (let i = 0; i < pendingImages.length; i++) {
                 const p = pendingImages[i];
                 const fileName = `${stamp}_${randSlug()}_${i}_${sanitizeFileName(p.name)}`;
                 const info = await ghUploadImage(p.file, fileName);
-                uploaded.push({ url: info.url, path: info.path });
-                // feedback de progreso
+                uploadedNew.push({ url: info.url, path: info.path });
                 submitBtn.textContent = `Subiendo (${i + 1}/${pendingImages.length})…`;
             }
 
-            // 2) Crear documento en Firestore con las URLs
-            await addDoc(collection(db, COL), {
-                name,
-                desc: els.itemDesc.value.trim(),
-                images: uploaded.map(u => u.url),
-                imagePaths: uploaded.map(u => u.path),
-                createdAt: serverTimestamp(),
-                authorUid: currentUser.uid,
-            });
+            // Combinar URLs: existentes (mantenidas) + nuevas
+            const allImages = [
+                ...existingImages.map(e => ({ url: e.url, path: e.path })),
+                ...uploadedNew,
+            ];
+            const allUrls   = allImages.map(u => u.url);
+            const allPaths  = allImages.map(u => u.path);
 
-            closeModal(els.formModal);
-            showToast('Objeto publicado ✓', 'success');
+            if (formState.mode === 'edit' && formState.id) {
+                // ---------- EDICIÓN ----------
+                submitBtn.textContent = 'Guardando cambios…';
+                await updateDoc(doc(db, COL, formState.id), {
+                    name,
+                    desc: els.itemDesc.value.trim(),
+                    images: allUrls,
+                    imagePaths: allPaths,
+                });
+                // Borrar de GitHub las imágenes eliminadas
+                for (const path of removedImagePaths) {
+                    if (!path) continue;
+                    try {
+                        const sha = await ghGetFileSha(path);
+                        if (sha) await ghDeleteImage(path, sha);
+                    } catch (e) {
+                        console.warn('No se pudo borrar imagen eliminada', path, e);
+                    }
+                }
+                closeModal(els.formModal);
+                showToast('Objeto actualizado ✓', 'success');
+            } else {
+                // ---------- CREACIÓN ----------
+                await addDoc(collection(db, COL), {
+                    name,
+                    desc: els.itemDesc.value.trim(),
+                    images: allUrls,
+                    imagePaths: allPaths,
+                    createdAt: serverTimestamp(),
+                    authorUid: currentUser.uid,
+                });
+                closeModal(els.formModal);
+                showToast('Objeto publicado ✓', 'success');
+            }
         } catch (err) {
-            console.error('Error al publicar:', err);
-            showToast('No se pudo publicar: ' + friendlyErr(err), 'error');
+            console.error('Error al guardar:', err);
+            showToast('No se pudo guardar: ' + friendlyErr(err), 'error');
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = origText;
