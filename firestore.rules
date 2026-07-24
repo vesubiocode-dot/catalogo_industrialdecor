@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// =================================================================
+//  INDUSTRIAL DECORS — Reglas de Firestore
+//  Política:
+//    - El catálogo (colección "items") es PÚBLICO de lectura (cualquiera
+//      puede ver las piezas). Email anónimo incluido.
+//    - Solo usuarios autenticados pueden crear / editar / borrar
+//      documentos en "items".
+//    - Validamos que los campos escritos sean los esperados.
+//  Cómo aplicarlas:
+//    1. Entrá a https://console.firebase.google.com
+//    2. Build → Firestore → Rules
+//    3. Reemplazá TODO el contenido por este archivo
+//    4. Click en "Publicar"
+// =================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /items/{itemId} {
+      // Lectura pública (cualquiera, sin login)
+      allow read: if true;
+
+      // Escritura solo usuarios autenticados
+      allow create: if request.auth != null
+                    && incomingDataIsValid();
+      allow update, delete: if request.auth != null;
+
+      // Validación de campos obligatorios en alta
+      function incomingDataIsValid() {
+        let data = request.resource.data;
+        return data.name is string
+              && data.name.size() > 0 && data.name.size() <= 80
+              && data.desc is string && data.desc.size() <= 2000
+              && data.images.size() >= 1 && data.images.size() <= 20
+              && (!data.hasAll('quantity') || (
+                    (data.quantity is int || data.quantity is float)
+                    && data.quantity >= 0))
+              && (data.authorUid == request.auth.uid);
+      }
+    }
+
+    // Bloquear cualquier otra colección por defecto
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
